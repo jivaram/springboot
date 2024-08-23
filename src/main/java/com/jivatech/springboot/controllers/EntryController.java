@@ -1,6 +1,7 @@
 package com.jivatech.springboot.controllers;
 
 import com.jivatech.springboot.Entry.Entry;
+import org.bson.types.ObjectId;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -9,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/entry")
+@RequestMapping("/_entry")
 public class EntryController {
 
-    Map<Long, Entry> entry = new HashMap<>();
+    Map<ObjectId, Entry> entry = new HashMap<>();
 
     @GetMapping
     public List<Entry> getAll() {
@@ -36,7 +37,7 @@ public class EntryController {
     }
 
     @PutMapping("id/{id}")
-    public Entry updateEntryList(@PathVariable Long id, @RequestBody Entry myEntry) {
+    public Entry updateEntryList(@PathVariable ObjectId id, @RequestBody Entry myEntry) {
         return  entry.put(id, myEntry);
     }
 }
