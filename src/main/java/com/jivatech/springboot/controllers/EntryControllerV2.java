@@ -4,14 +4,13 @@ import com.jivatech.springboot.Entry.Entry;
 import com.jivatech.springboot.service.EntryService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/entry")
@@ -21,36 +20,49 @@ public class EntryControllerV2 {
     private EntryService entryService;
 
     @GetMapping
-    public List<Entry> getAll() {
-        return  entryService.getAll();
+    public ResponseEntity<?> getAll() {
+       List<Entry> entry = entryService.getAll();
+        if (entry != null && !entry.isEmpty()) {
+            return new ResponseEntity<>(entry, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping
-    public Entry cretaeEntry(@RequestBody Entry myentry) {
-        myentry.setDate(LocalDateTime.now());
-        entryService.saveEntry(myentry);
-        return  myentry;
+    public ResponseEntity<Entry> cretaeEntry(@RequestBody Entry myentry) {
+        try {
+            myentry.setDate(LocalDateTime.now());
+            entryService.saveEntry(myentry);
+            return  new ResponseEntity<>(myentry, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return  new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping("id/{myId}")
-    public Entry getListById(@PathVariable ObjectId myId) {
-        return  entryService.getEntryFromId(myId).orElse(null);
+    public ResponseEntity<Entry> getListById(@PathVariable ObjectId myId) {
+        Optional<Entry> entry = entryService.getEntryFromId(myId);
+        if (entry.isPresent()) {
+            return new ResponseEntity<>(entry.get(), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("id/{userId}")
-    public boolean deleteEntryById(@PathVariable ObjectId userId) {
+    public ResponseEntity<?> deleteEntryById(@PathVariable ObjectId userId) {
         entryService.deleteById(userId);
-        return true;
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PutMapping("id/{id}")
-    public Entry updateEntryList(@PathVariable ObjectId id, @RequestBody Entry newEntry) {
+    public ResponseEntity<Entry> updateEntryList(@PathVariable ObjectId id, @RequestBody Entry newEntry) {
         Entry oldentry = entryService.getEntryFromId(id).orElse(null);
         if (oldentry != null) {
             oldentry.setTitle(newEntry.getTitle() != null && !newEntry.getTitle().equals("") ? newEntry.getTitle(): oldentry.getTitle());
             oldentry.setContent(newEntry.getContent() != null && !newEntry.getContent().equals("") ? newEntry.getContent(): oldentry.getContent());
+            entryService.saveEntry(oldentry);
+            return  new ResponseEntity<>(oldentry, HttpStatus.OK);
         }
-        entryService.saveEntry(oldentry);
-        return  oldentry;
+        return  new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }
