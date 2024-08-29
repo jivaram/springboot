@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface EntryRepositroy extends MongoRepository<Entry, ObjectId> {
 
+    Optional<Entry> findAllById(ObjectId myId);
 }
